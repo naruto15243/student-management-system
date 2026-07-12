@@ -31,7 +31,21 @@ app.post("/students", async (req,res)=>{
  await student.save();
  res.json(student);
 });
+// Update student
+app.put("/students/:id", async (req, res) => {
 
+    const student = await Student.findByIdAndUpdate(
+        req.params.id,
+        {
+            name: req.body.name,
+            roll: req.body.roll
+        },
+        { new: true }
+    );
+
+    res.json(student);
+
+});
 // Delete student
 app.delete("/students/:id", async(req,res)=>{
  await Student.findByIdAndDelete(req.params.id);
