@@ -24,9 +24,11 @@ app.get("/students", async (req,res)=>{
 // Add student
 app.post("/students", async (req,res)=>{
  const student = new Student({
-  name:req.body.name,
-  roll:req.body.roll
- });
+    name: req.body.name,
+    roll: req.body.roll,
+    department: req.body.department,
+    email: req.body.email
+});
 
  await student.save();
  res.json(student);
@@ -38,7 +40,9 @@ app.put("/students/:id", async (req, res) => {
         req.params.id,
         {
             name: req.body.name,
-            roll: req.body.roll
+            roll: req.body.roll,
+            department: req.body.department,
+            email: req.body.email
         },
         { new: true }
     );
