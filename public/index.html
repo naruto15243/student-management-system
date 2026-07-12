@@ -8,52 +8,151 @@
 
 <h2>Student Management System</h2>
 
+<input id="search" placeholder="Search Student..." onkeyup="loadStudents()">
+
+<br><br>
+
 <input id="name" placeholder="Student Name">
+
 <input id="roll" placeholder="Roll Number">
 
-<button onclick="addStudent()">Add</button>
+<button onclick="addStudent()">Save Student</button>
+
+<p>
+Total Students :
+<b id="count">0</b>
+</p>
 
 <ul id="list"></ul>
 
 <script>
 
+let editId = null;
+
 async function loadStudents(){
 
- let res = await fetch("/students");
- let data = await res.json();
+    let res = await fetch("/students");
+    let data = await res.json();
 
- let output="";
+    let keyword=document.getElementById("search").value.toLowerCase();
 
- data.forEach(s=>{
-  output+=`<li>${s.name} (${s.roll})
-  <button onclick="deleteStudent('${s._id}')">Delete</button>
-  </li>`;
- });
+    data=data.filter(student=>
 
- document.getElementById("list").innerHTML=output;
+        student.name.toLowerCase().includes(keyword) ||
+
+        student.roll.toLowerCase().includes(keyword)
+
+    );
+
+    document.getElementById("count").innerText=data.length;
+
+    let output="";
+
+    data.forEach(student=>{
+
+        output+=`
+        <li>
+
+        <b>${student.name}</b>
+
+        (${student.roll})
+
+        <button onclick="editStudent('${student._id}','${student.name}','${student.roll}')">
+
+        Edit
+
+        </button>
+
+        <button onclick="deleteStudent('${student._id}')">
+
+        Delete
+
+        </button>
+
+        </li>
+        `;
+
+    });
+
+    document.getElementById("list").innerHTML=output;
+
 }
 
 async function addStudent(){
 
- let name=document.getElementById("name").value;
- let roll=document.getElementById("roll").value;
+    let name=document.getElementById("name").value.trim();
 
- await fetch("/students",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({name,roll})
- });
+    let roll=document.getElementById("roll").value.trim();
 
- loadStudents();
+    if(name=="" || roll==""){
+
+        alert("Please fill all fields");
+
+        return;
+
+    }
+
+    if(editId){
+
+        await fetch("/students/"+editId,{
+
+            method:"PUT",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({name,roll})
+
+        });
+
+        editId=null;
+
+    }else{
+
+        await fetch("/students",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({name,roll})
+
+        });
+
+    }
+
+    document.getElementById("name").value="";
+
+    document.getElementById("roll").value="";
+
+    loadStudents();
+
+}
+
+function editStudent(id,name,roll){
+
+    editId=id;
+
+    document.getElementById("name").value=name;
+
+    document.getElementById("roll").value=roll;
+
 }
 
 async function deleteStudent(id){
 
- await fetch("/students/"+id,{
-  method:"DELETE"
- });
+    if(!confirm("Delete this student?"))
+        return;
 
- loadStudents();
+    await fetch("/students/"+id,{
+        method:"DELETE"
+    });
+
+    loadStudents();
+
 }
 
 loadStudents();
